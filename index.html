@@ -9,40 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <style>
-        /* Core variables (Light Mode) */
+        /* Core variables (Dark Mode Only) */
         :root {
-            --bg-dark: #f1f5f9;
-            --card-bg: rgba(255, 255, 255, 0.75);
-            --border-color: rgba(15, 23, 42, 0.08);
-            --color-x: #ff3344;
-            --color-x-glow: rgba(255, 51, 68, 0.12);
-            --color-o: #22c55e;
-            --color-o-glow: rgba(34, 197, 94, 0.12);
-            --color-draw: #475569;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --bg-blur-opacity: 0.12;
-            --shadow-main: rgba(15, 23, 42, 0.08);
-            --shadow-inner: rgba(255, 255, 255, 0.8);
-            --border-container: rgba(255, 255, 255, 0.6);
-            --btn-secondary-bg: rgba(255, 255, 255, 0.6);
-            --btn-secondary-hover: rgba(255, 255, 255, 0.9);
-            --panel-bg: rgba(255, 255, 255, 0.4);
-            --panel-border: rgba(0, 0, 0, 0.04);
-            --toggle-bg: rgba(0, 0, 0, 0.05);
-            --toggle-border: rgba(0, 0, 0, 0.03);
-            --score-card-bg: rgba(255, 255, 255, 0.5);
-            --cell-bg: rgba(255, 255, 255, 0.6);
-            --cell-hover: rgba(255, 255, 255, 0.9);
-            --input-bg: rgba(255, 255, 255, 0.8);
-            --input-border: rgba(0, 0, 0, 0.1);
-            --modal-overlay: rgba(15, 23, 42, 0.45);
-            --modal-content-bg: rgba(255, 255, 255, 0.95);
-            --modal-content-border: rgba(255, 255, 255, 0.8);
-        }
-
-        /* Dark Mode variables override */
-        body.dark-mode {
             --bg-dark: #060713;
             --card-bg: rgba(10, 11, 24, 0.65);
             --border-color: rgba(255, 255, 255, 0.06);
@@ -71,11 +39,11 @@
             --modal-overlay: rgba(3, 4, 9, 0.85);
             --modal-content-bg: var(--card-bg);
             --modal-content-border: rgba(255, 255, 255, 0.08);
-        }
-
-        /* Smooth Transition variables for all style values */
-        body, .container, .controls-panel, .toggle-group, .toggle-btn, .score-card, .status-wrapper, .cell, .btn, .icon-btn, h1, label, input, .win-line {
-            transition: background 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+            
+            /* Responsive variables */
+            --cell-size: 100px;
+            --cell-gap: 12px;
+            --cell-font: 2.8rem;
         }
 
         * {
@@ -96,7 +64,7 @@
             position: relative;
         }
 
-        /* Cyberpunk Nebula Effect */
+        /* Cyberpunk Nebula Effect (Static & High Performance) */
         .bg-blur {
             position: absolute;
             width: 450px;
@@ -106,7 +74,6 @@
             opacity: var(--bg-blur-opacity);
             z-index: -1;
             pointer-events: none;
-            animation: nebulaDrift 20s ease-in-out infinite alternate;
         }
 
         .blur-1 {
@@ -119,19 +86,6 @@
             background-color: var(--color-o);
             bottom: 5%;
             right: 5%;
-            animation-delay: -10s;
-        }
-
-        @keyframes nebulaDrift {
-            0% {
-                transform: translate(0, 0) scale(1);
-            }
-            50% {
-                transform: translate(50px, 30px) scale(1.15);
-            }
-            100% {
-                transform: translate(-30px, -50px) scale(0.9);
-            }
         }
 
         /* Glassmorphism Container */
@@ -349,9 +303,9 @@
 
         .board {
             display: grid;
-            grid-template-columns: repeat(3, 100px);
-            grid-template-rows: repeat(3, 100px);
-            gap: 12px;
+            grid-template-columns: repeat(3, var(--cell-size));
+            grid-template-rows: repeat(3, var(--cell-size));
+            gap: var(--cell-gap);
         }
 
         /* Cells styling */
@@ -362,7 +316,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 2.8rem;
+            font-size: var(--cell-font);
             font-weight: 800;
             cursor: pointer;
             position: relative;
@@ -392,7 +346,7 @@
 
         /* Cell hover content */
         .cell:not(.X):not(.O):hover::after {
-            font-size: 2.8rem;
+            font-size: var(--cell-font);
             font-weight: 800;
             position: absolute;
             display: flex;
@@ -608,29 +562,36 @@
             box-shadow: 0 0 10px rgba(2, 132, 199, 0.1);
         }
 
-        /* Responsive UI */
-        @media (max-width: 400px) {
+        /* Responsive UI (Mobile Optimize) */
+        @media (max-width: 430px) {
+            :root {
+                --cell-size: clamp(65px, 20vw, 85px);
+                --cell-gap: clamp(8px, 2.5vw, 10px);
+                --cell-font: clamp(2rem, 6vw, 2.4rem);
+            }
+            
             .container {
-                padding: 22px;
-            }
-            
-            .board {
-                grid-template-columns: repeat(3, 85px);
-                grid-template-rows: repeat(3, 85px);
-                gap: 10px;
-            }
-            
-            .cell {
-                font-size: 2.4rem;
-                border-radius: 14px;
-            }
-            
-            .cell:not(.X):not(.O):hover::after {
-                font-size: 2.4rem;
+                padding: clamp(14px, 4vw, 22px);
+                gap: 14px;
             }
             
             h1 {
                 font-size: 1.7rem;
+            }
+
+            .btn {
+                padding: 10px 14px;
+                font-size: 0.82rem;
+            }
+
+            .modal-content {
+                padding: 20px;
+                gap: 15px;
+            }
+
+            /* Prevent iOS Safari auto-zooming on focus by forcing 16px minimum text size */
+            .modal-input-group input, #shareLinkInput {
+                font-size: 16px !important;
             }
         }
     </style>
@@ -645,16 +606,6 @@
         <div class="top-bar">
             <h1>XO Game</h1>
             <div class="top-actions">
-                <button id="themeToggle" class="icon-btn" title="થીમ બદલો (લાઇટ/ડાર્ક)">
-                    <!-- Sun SVG (shown in dark mode) -->
-                    <svg id="themeSunIcon" viewBox="0 0 24 24" width="22" height="22" style="display: none;">
-                        <path fill="currentColor" d="M12,18C11.11,18 10.26,17.8 9.5,17.45L11.56,13.9L13.5,17.27C13.03,17.73 12.56,18 12,18M12,6C12.56,6 13.03,6.27 13.5,6.73L11.56,10.1L9.5,6.55C10.26,6.2 11.11,6 12,6M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z" />
-                    </svg>
-                    <!-- Moon SVG (shown in light mode) -->
-                    <svg id="themeMoonIcon" viewBox="0 0 24 24" width="22" height="22">
-                        <path fill="currentColor" d="M12.3,2a10,10 0 0,0-1.9,1.1,10.4,10.4 0 0,0-2.8,3.4,10.2,10.2 0 0,0-1,4.4,10.2,10.2 0 0,0,1,4.4,10.4,10.4 0 0,0,2.8,3.4c.5.4,1.1.7,1.7,1a9.9,9.9 0 0,1-3.7.7,10,10 0 0,1-10-10,10,10 0 0,1,10-10,9.9,9.9 0 0,1,3.9.7M12.3,4.1C11.1,5.2,10.3,6.7,10.3,8.5a6.5,6.5 0 0,0,6.5,6.5c1.8,0,3.3-.8,4.4-2a8.5,8.5 0 0,1-8.9-8.9Z" />
-                    </svg>
-                </button>
                 <button id="soundToggle" class="icon-btn" title="અવાજ ચાલુ/બંધ">
                     <!-- Sound ON SVG -->
                     <svg id="soundOnIcon" viewBox="0 0 24 24" width="24" height="24">
@@ -795,10 +746,7 @@
         const scoreXCard = document.getElementById('scoreXCard');
         const scoreOCard = document.getElementById('scoreOCard');
         
-        // Theme and Modal DOM elements
-        const themeToggle = document.getElementById('themeToggle');
-        const themeSunIcon = document.getElementById('themeSunIcon');
-        const themeMoonIcon = document.getElementById('themeMoonIcon');
+        // Modal DOM elements
         const namesModal = document.getElementById('namesModal');
         const playerXNameInput = document.getElementById('playerXNameInput');
         const playerONameInput = document.getElementById('playerONameInput');
@@ -819,12 +767,12 @@
 
         // Game States
         let currentPlayer = 'X';
+        let roundStarter = 'X'; // Alternates starter round-by-round
         let gameState = ["", "", "", "", "", "", "", "", ""];
         let isGameActive = true;
         let isAiThinking = false;
         let playerXName = "ખેલાડી X";
         let playerOName = "ખેલાડી O";
-        let isDarkMode = false;
 
         // Online Matchmaking States
         let mqttClient = null;
@@ -854,19 +802,6 @@
             return activeBtn ? activeBtn.getAttribute('data-diff') : 'impossible';
         }
 
-        // Apply theme changes to DOM class lists
-        function updateThemeUI() {
-            if (isDarkMode) {
-                document.body.classList.add('dark-mode');
-                themeSunIcon.style.display = 'block';
-                themeMoonIcon.style.display = 'none';
-            } else {
-                document.body.classList.remove('dark-mode');
-                themeSunIcon.style.display = 'none';
-                themeMoonIcon.style.display = 'block';
-            }
-        }
-
         // Initialize scores and settings from LocalStorage
         function loadSettings() {
             const savedScores = localStorage.getItem('xoGame_scores');
@@ -885,20 +820,14 @@
             if (savedNameO) {
                 playerOName = savedNameO;
             }
-            const savedTheme = localStorage.getItem('xoGame_theme');
-            if (savedTheme !== null) {
-                isDarkMode = JSON.parse(savedTheme);
-            }
             updateScoreboardUI();
             updateMuteUI();
-            updateThemeUI();
         }
 
         function saveSettings() {
             localStorage.setItem('xoGame_scores', JSON.stringify(scores));
             localStorage.setItem('xoGame_playerXName', playerXName);
             localStorage.setItem('xoGame_playerOName', playerOName);
-            localStorage.setItem('xoGame_theme', JSON.stringify(isDarkMode));
         }
 
         // -------------------------------------------------------------
@@ -1073,6 +1002,10 @@
 
             if (gameState[clickedCellIndex] !== "" || !isGameActive || isAiThinking) {
                 return;
+            }
+
+            if (getActiveMode() === 'pve' && currentPlayer === 'O') {
+                return; // Block human from playing during AI's turn
             }
 
             if (isOnlineGame) {
@@ -1276,6 +1209,9 @@
                     statusText.className = "status turn-o";
                 }
                 
+                // Toggle starter for the next round
+                roundStarter = (roundStarter === 'X') ? 'O' : 'X';
+                
                 saveSettings();
                 updateScoreboardUI();
                 removeGlows();
@@ -1298,6 +1234,10 @@
                 statusText.className = "status draw";
                 isGameActive = false;
                 playDrawSound();
+                
+                // Toggle starter for the next round
+                roundStarter = (roundStarter === 'X') ? 'O' : 'X';
+                
                 saveSettings();
                 updateScoreboardUI();
                 removeGlows();
@@ -1411,7 +1351,7 @@
 
         function resetGame(silent = false, fromNetwork = false) {
             if (!silent) playResetSound();
-            currentPlayer = 'X';
+            currentPlayer = roundStarter; // Alternate start turns dynamically
             gameState = ["", "", "", "", "", "", "", "", ""];
             isGameActive = true;
             isAiThinking = false;
@@ -1428,6 +1368,19 @@
             
             updateStatusUI();
 
+            // Trigger AI if it's O's turn to play first in PVE mode
+            if (getActiveMode() === 'pve' && currentPlayer === 'O' && isGameActive) {
+                isAiThinking = true;
+                setTimeout(() => {
+                    if (!isGameActive) {
+                        isAiThinking = false;
+                        return;
+                    }
+                    aiPlay();
+                    isAiThinking = false;
+                }, 550);
+            }
+
             if (isOnlineGame && !fromNetwork && mqttClient && mqttClient.connected) {
                 mqttClient.publish(`xo-game/room/${onlineRoomId}`, JSON.stringify({ type: 'reset' }));
             }
@@ -1436,6 +1389,7 @@
         function resetScores(fromNetwork = false) {
             playResetSound();
             scores = { X: 0, O: 0, Draw: 0 };
+            roundStarter = 'X'; // Reset starter back to X
             saveSettings();
             updateScoreboardUI();
             resetGame(true, fromNetwork);
@@ -1573,10 +1527,12 @@
                 playerXName = savedNameX ? savedNameX : "ખેલાડી X";
                 document.querySelector('#scoreXCard .player-name').innerText = playerXName;
                 
+                roundStarter = 'X'; // Reset starter to human
                 resetGame(true);
             } 
             else if (getActiveMode() === 'pvp') {
                 difficultyGroup.style.display = 'none';
+                roundStarter = 'X'; // Reset starter to X
                 
                 if (!silent) {
                     // Open names modal
@@ -1732,13 +1688,7 @@
 
         soundToggle.addEventListener('click', toggleMute);
 
-        // Theme Switcher Toggle Click
-        themeToggle.addEventListener('click', () => {
-            isDarkMode = !isDarkMode;
-            saveSettings();
-            updateThemeUI();
-            playResetSound();
-        });
+
 
         // Initialize application state
         const urlParams = new URLSearchParams(window.location.search);
