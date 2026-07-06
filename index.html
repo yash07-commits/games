@@ -7,19 +7,75 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <style>
-        /* Core variables */
+        /* Core variables (Light Mode) */
         :root {
             --bg-dark: #f1f5f9;
             --card-bg: rgba(255, 255, 255, 0.75);
             --border-color: rgba(15, 23, 42, 0.08);
             --color-x: #ff3344;
-            --color-x-glow: rgba(255, 51, 68, 0.15);
+            --color-x-glow: rgba(255, 51, 68, 0.12);
             --color-o: #22c55e;
-            --color-o-glow: rgba(34, 197, 94, 0.15);
+            --color-o-glow: rgba(34, 197, 94, 0.12);
             --color-draw: #475569;
             --text-main: #0f172a;
             --text-muted: #64748b;
+            --bg-blur-opacity: 0.12;
+            --shadow-main: rgba(15, 23, 42, 0.08);
+            --shadow-inner: rgba(255, 255, 255, 0.8);
+            --border-container: rgba(255, 255, 255, 0.6);
+            --btn-secondary-bg: rgba(255, 255, 255, 0.6);
+            --btn-secondary-hover: rgba(255, 255, 255, 0.9);
+            --panel-bg: rgba(255, 255, 255, 0.4);
+            --panel-border: rgba(0, 0, 0, 0.04);
+            --toggle-bg: rgba(0, 0, 0, 0.05);
+            --toggle-border: rgba(0, 0, 0, 0.03);
+            --score-card-bg: rgba(255, 255, 255, 0.5);
+            --cell-bg: rgba(255, 255, 255, 0.6);
+            --cell-hover: rgba(255, 255, 255, 0.9);
+            --input-bg: rgba(255, 255, 255, 0.8);
+            --input-border: rgba(0, 0, 0, 0.1);
+            --modal-overlay: rgba(15, 23, 42, 0.45);
+            --modal-content-bg: rgba(255, 255, 255, 0.95);
+            --modal-content-border: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Dark Mode variables override */
+        body.dark-mode {
+            --bg-dark: #060713;
+            --card-bg: rgba(10, 11, 24, 0.65);
+            --border-color: rgba(255, 255, 255, 0.06);
+            --color-x: #ff3344;
+            --color-x-glow: rgba(255, 51, 68, 0.35);
+            --color-o: #22c55e;
+            --color-o-glow: rgba(34, 197, 94, 0.35);
+            --color-draw: #e2e8f0;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --bg-blur-opacity: 0.18;
+            --shadow-main: rgba(0, 0, 0, 0.6);
+            --shadow-inner: rgba(255, 255, 255, 0.1);
+            --border-container: rgba(255, 255, 255, 0.05);
+            --btn-secondary-bg: rgba(255, 255, 255, 0.02);
+            --btn-secondary-hover: rgba(255, 255, 255, 0.06);
+            --panel-bg: rgba(0, 0, 0, 0.25);
+            --panel-border: rgba(255, 255, 255, 0.03);
+            --toggle-bg: rgba(0, 0, 0, 0.4);
+            --toggle-border: rgba(255, 255, 255, 0.05);
+            --score-card-bg: rgba(255, 255, 255, 0.02);
+            --cell-bg: rgba(255, 255, 255, 0.02);
+            --cell-hover: rgba(255, 255, 255, 0.05);
+            --input-bg: rgba(0, 0, 0, 0.4);
+            --input-border: var(--border-color);
+            --modal-overlay: rgba(3, 4, 9, 0.85);
+            --modal-content-bg: var(--card-bg);
+            --modal-content-border: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Smooth Transition variables for all style values */
+        body, .container, .controls-panel, .toggle-group, .toggle-btn, .score-card, .status-wrapper, .cell, .btn, .icon-btn, h1, label, input, .win-line {
+            transition: background 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
         }
 
         * {
@@ -47,7 +103,7 @@
             height: 450px;
             border-radius: 50%;
             filter: blur(150px);
-            opacity: 0.12;
+            opacity: var(--bg-blur-opacity);
             z-index: -1;
             pointer-events: none;
             animation: nebulaDrift 20s ease-in-out infinite alternate;
@@ -85,11 +141,11 @@
             background: var(--card-bg);
             padding: 28px;
             border-radius: 28px;
-            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08), 
-                        inset 0 0 1px rgba(255, 255, 255, 0.8);
+            box-shadow: 0 24px 60px var(--shadow-main), 
+                        inset 0 0 1px var(--shadow-inner);
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
+            border: 1px solid var(--border-container);
             display: flex;
             flex-direction: column;
             gap: 18px;
@@ -115,6 +171,11 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             filter: drop-shadow(0 2px 4px rgba(2, 132, 199, 0.15));
+        }
+
+        .top-actions {
+            display: flex;
+            gap: 8px;
         }
 
         /* Sound Icon Button */
@@ -144,10 +205,10 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            background: rgba(255, 255, 255, 0.4);
+            background: var(--panel-bg);
             padding: 14px;
             border-radius: 18px;
-            border: 1px solid rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--panel-border);
         }
 
         .control-group {
@@ -166,10 +227,10 @@
         /* Capsule Toggle Button Group */
         .toggle-group {
             display: flex;
-            background: rgba(0, 0, 0, 0.05);
+            background: var(--toggle-bg);
             padding: 3px;
             border-radius: 20px;
-            border: 1px solid rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--toggle-border);
             position: relative;
         }
 
@@ -208,7 +269,7 @@
         }
 
         .score-card {
-            background: rgba(255, 255, 255, 0.5);
+            background: var(--score-card-bg);
             border: 1px solid var(--border-color);
             border-radius: 16px;
             padding: 10px 8px;
@@ -252,7 +313,7 @@
 
         /* Status Indicator */
         .status-wrapper {
-            background: rgba(255, 255, 255, 0.5);
+            background: var(--color-draw);
             border: 1px solid var(--border-color);
             padding: 10px 14px;
             border-radius: 14px;
@@ -295,7 +356,7 @@
 
         /* Cells styling */
         .cell {
-            background-color: rgba(255, 255, 255, 0.6);
+            background-color: var(--cell-bg);
             border: 1px solid var(--border-color);
             border-radius: 18px;
             display: flex;
@@ -312,7 +373,7 @@
 
         /* Hover scales and subtle neon borders */
         .cell:hover {
-            background-color: rgba(255, 255, 255, 0.9);
+            background-color: var(--cell-hover);
             transform: translateY(-3px) scale(1.03);
             box-shadow: 0 10px 20px rgba(15, 23, 42, 0.04);
         }
@@ -430,13 +491,13 @@
         }
 
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.6);
+            background: var(--btn-secondary-bg);
             color: var(--text-main);
             border: 1px solid var(--border-color);
         }
 
         .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.9);
+            background: var(--btn-secondary-hover);
             border-color: rgba(0, 0, 0, 0.15);
             transform: translateY(-2px);
         }
@@ -463,7 +524,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(15, 23, 42, 0.45);
+            background: var(--modal-overlay);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             z-index: 1000;
@@ -481,8 +542,8 @@
         }
 
         .modal-content {
-            background: rgba(255, 255, 255, 0.95);
-            border: 1px solid rgba(255, 255, 255, 0.8);
+            background: var(--modal-content-bg);
+            border: 1px solid var(--modal-content-border);
             border-radius: 24px;
             padding: 30px;
             width: 90%;
@@ -526,8 +587,8 @@
         }
 
         .modal-input-group input {
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(0, 0, 0, 0.1);
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
             padding: 12px 16px;
             border-radius: 12px;
             color: var(--text-main);
@@ -583,16 +644,28 @@
         <!-- Top bar with title and sound option -->
         <div class="top-bar">
             <h1>XO Game</h1>
-            <button id="soundToggle" class="icon-btn" title="અવાજ ચાલુ/બંધ">
-                <!-- Sound ON SVG -->
-                <svg id="soundOnIcon" viewBox="0 0 24 24" width="24" height="24">
-                    <path fill="currentColor" d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.85 14,18.71V20.77C18.07,19.86 21,16.28 21,12C21,7.72 18.07,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.77 16.5,12M3,9V15H7L12,20V4L7,9H3Z" />
-                </svg>
-                <!-- Sound OFF SVG (hidden) -->
-                <svg id="soundOffIcon" viewBox="0 0 24 24" width="24" height="24" style="display: none;">
-                    <path fill="currentColor" d="M12,4L9.91,6.09L12,8.18M4.27,3L3,4.27L7.73,9H3V15H7L12,20V13.27L16.25,17.53C15.58,18.04 14.83,18.44 14,18.7V20.77C15.38,20.44 16.63,19.79 17.66,18.9L20.73,21.97L22,20.7L4.27,3M19,12C19,12.9 18.84,13.75 18.57,14.54L20.12,16.1C20.67,14.87 21,13.5 21,12C21,7.72 18.07,4.14 14,3.23V5.29C16.89,6.15 19,8.83 19,12M16.5,12C16.5,10.23 15.5,8.71 14,7.97V10.18L16.45,12.63C16.48,12.43 16.5,12.22 16.5,12Z" />
-                </svg>
-            </button>
+            <div class="top-actions">
+                <button id="themeToggle" class="icon-btn" title="થીમ બદલો (લાઇટ/ડાર્ક)">
+                    <!-- Sun SVG (shown in dark mode) -->
+                    <svg id="themeSunIcon" viewBox="0 0 24 24" width="22" height="22" style="display: none;">
+                        <path fill="currentColor" d="M12,18C11.11,18 10.26,17.8 9.5,17.45L11.56,13.9L13.5,17.27C13.03,17.73 12.56,18 12,18M12,6C12.56,6 13.03,6.27 13.5,6.73L11.56,10.1L9.5,6.55C10.26,6.2 11.11,6 12,6M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z" />
+                    </svg>
+                    <!-- Moon SVG (shown in light mode) -->
+                    <svg id="themeMoonIcon" viewBox="0 0 24 24" width="22" height="22">
+                        <path fill="currentColor" d="M12.3,2a10,10 0 0,0-1.9,1.1,10.4,10.4 0 0,0-2.8,3.4,10.2,10.2 0 0,0-1,4.4,10.2,10.2 0 0,0,1,4.4,10.4,10.4 0 0,0,2.8,3.4c.5.4,1.1.7,1.7,1a9.9,9.9 0 0,1-3.7.7,10,10 0 0,1-10-10,10,10 0 0,1,10-10,9.9,9.9 0 0,1,3.9.7M12.3,4.1C11.1,5.2,10.3,6.7,10.3,8.5a6.5,6.5 0 0,0,6.5,6.5c1.8,0,3.3-.8,4.4-2a8.5,8.5 0 0,1-8.9-8.9Z" />
+                    </svg>
+                </button>
+                <button id="soundToggle" class="icon-btn" title="અવાજ ચાલુ/બંધ">
+                    <!-- Sound ON SVG -->
+                    <svg id="soundOnIcon" viewBox="0 0 24 24" width="24" height="24">
+                        <path fill="currentColor" d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.85 14,18.71V20.77C18.07,19.86 21,16.28 21,12C21,7.72 18.07,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.77 16.5,12M3,9V15H7L12,20V4L7,9H3Z" />
+                    </svg>
+                    <!-- Sound OFF SVG (hidden) -->
+                    <svg id="soundOffIcon" viewBox="0 0 24 24" width="24" height="24" style="display: none;">
+                        <path fill="currentColor" d="M12,4L9.91,6.09L12,8.18M4.27,3L3,4.27L7.73,9H3V15H7L12,20V13.27L16.25,17.53C15.58,18.04 14.83,18.44 14,18.7V20.77C15.38,20.44 16.63,19.79 17.66,18.9L20.73,21.97L22,20.7L4.27,3M19,12C19,12.9 18.84,13.75 18.57,14.54L20.12,16.1C20.67,14.87 21,13.5 21,12C21,7.72 18.07,4.14 14,3.23V5.29C16.89,6.15 19,8.83 19,12M16.5,12C16.5,10.23 15.5,8.71 14,7.97V10.18L16.45,12.63C16.48,12.43 16.5,12.22 16.5,12Z" />
+                    </svg>
+                </button>
+            </div>
         </div>
 
         <!-- Mode selector card -->
@@ -600,8 +673,9 @@
             <div class="control-group">
                 <label>રમતનો પ્રકાર:</label>
                 <div class="toggle-group" id="modeSelector">
-                    <button class="toggle-btn" data-mode="pvp">👥 ૨ ખેલાડી</button>
+                    <button class="toggle-btn" data-mode="pvp">👥 સ્થાનિક</button>
                     <button class="toggle-btn active" data-mode="pve">💻 કમ્પ્યુટર</button>
+                    <button class="toggle-btn" data-mode="online">🌐 ઓનલાઇન</button>
                 </div>
             </div>
             
@@ -612,6 +686,18 @@
                     <button class="toggle-btn" data-diff="medium">સામાન્ય</button>
                     <button class="toggle-btn active" data-diff="impossible">અશક્ય</button>
                 </div>
+            </div>
+        </div>
+
+        <!-- Online Matchmaking Panel (visible in online mode) -->
+        <div class="controls-panel" id="onlineStatusPanel" style="display: none; flex-direction: column; gap: 8px;">
+            <div class="control-group" style="justify-content: flex-start; gap: 8px; flex-wrap: wrap;">
+                <span class="badge" id="onlineStatusBadge" style="background: var(--color-x); color: #fff; padding: 4px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">જોડાઈ રહ્યા છીએ...</span>
+                <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">રૂમ કોડ: <span id="roomCodeDisplay" style="color: var(--text-main); font-weight: 800;">------</span></span>
+            </div>
+            <div class="control-group" id="shareLinkGroup" style="display: none; gap: 6px;">
+                <input type="text" id="shareLinkInput" readonly style="flex: 1; font-size: 0.8rem; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); padding: 8px 12px; border-radius: 10px; outline: none;" />
+                <button class="btn btn-primary" id="copyLinkBtn" style="padding: 8px 14px; font-size: 0.8rem; border-radius: 10px; width: auto; flex: none;">નકલ કરો</button>
             </div>
         </div>
 
@@ -679,6 +765,18 @@
         </div>
     </div>
 
+    <!-- Online Name Input Modal -->
+    <div id="onlineNameModal" class="modal">
+        <div class="modal-content">
+            <h2 id="onlineModalTitle">ઓનલાઇન રૂમ</h2>
+            <div class="modal-input-group">
+                <label for="onlineNameInput" id="onlineNameLabel">તમારું નામ:</label>
+                <input type="text" id="onlineNameInput" placeholder="તમારું નામ લખો" maxlength="12">
+            </div>
+            <button class="btn btn-primary" id="saveOnlineNameBtn">દાખલ કરો</button>
+        </div>
+    </div>
+
     <script>
                 const board = document.getElementById('board');
         const cells = document.querySelectorAll('.cell');
@@ -697,11 +795,27 @@
         const scoreXCard = document.getElementById('scoreXCard');
         const scoreOCard = document.getElementById('scoreOCard');
         
-        // Modal DOM elements
+        // Theme and Modal DOM elements
+        const themeToggle = document.getElementById('themeToggle');
+        const themeSunIcon = document.getElementById('themeSunIcon');
+        const themeMoonIcon = document.getElementById('themeMoonIcon');
         const namesModal = document.getElementById('namesModal');
         const playerXNameInput = document.getElementById('playerXNameInput');
         const playerONameInput = document.getElementById('playerONameInput');
         const saveNamesBtn = document.getElementById('saveNamesBtn');
+
+        // Online Mode DOM elements
+        const onlineStatusPanel = document.getElementById('onlineStatusPanel');
+        const onlineStatusBadge = document.getElementById('onlineStatusBadge');
+        const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+        const shareLinkGroup = document.getElementById('shareLinkGroup');
+        const shareLinkInput = document.getElementById('shareLinkInput');
+        const copyLinkBtn = document.getElementById('copyLinkBtn');
+        const onlineNameModal = document.getElementById('onlineNameModal');
+        const onlineModalTitle = document.getElementById('onlineModalTitle');
+        const onlineNameLabel = document.getElementById('onlineNameLabel');
+        const onlineNameInput = document.getElementById('onlineNameInput');
+        const saveOnlineNameBtn = document.getElementById('saveOnlineNameBtn');
 
         // Game States
         let currentPlayer = 'X';
@@ -710,6 +824,13 @@
         let isAiThinking = false;
         let playerXName = "ખેલાડી X";
         let playerOName = "ખેલાડી O";
+        let isDarkMode = false;
+
+        // Online Matchmaking States
+        let mqttClient = null;
+        let onlineRoomId = null;
+        let myRole = null; // 'host' (X) or 'guest' (O)
+        let isOnlineGame = false;
 
         // Winning Combinations
         const winningConditions = [
@@ -733,6 +854,19 @@
             return activeBtn ? activeBtn.getAttribute('data-diff') : 'impossible';
         }
 
+        // Apply theme changes to DOM class lists
+        function updateThemeUI() {
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+                themeSunIcon.style.display = 'block';
+                themeMoonIcon.style.display = 'none';
+            } else {
+                document.body.classList.remove('dark-mode');
+                themeSunIcon.style.display = 'none';
+                themeMoonIcon.style.display = 'block';
+            }
+        }
+
         // Initialize scores and settings from LocalStorage
         function loadSettings() {
             const savedScores = localStorage.getItem('xoGame_scores');
@@ -751,14 +885,20 @@
             if (savedNameO) {
                 playerOName = savedNameO;
             }
+            const savedTheme = localStorage.getItem('xoGame_theme');
+            if (savedTheme !== null) {
+                isDarkMode = JSON.parse(savedTheme);
+            }
             updateScoreboardUI();
             updateMuteUI();
+            updateThemeUI();
         }
 
         function saveSettings() {
             localStorage.setItem('xoGame_scores', JSON.stringify(scores));
             localStorage.setItem('xoGame_playerXName', playerXName);
             localStorage.setItem('xoGame_playerOName', playerOName);
+            localStorage.setItem('xoGame_theme', JSON.stringify(isDarkMode));
         }
 
         // -------------------------------------------------------------
@@ -935,7 +1075,30 @@
                 return;
             }
 
-            // Human player plays
+            if (isOnlineGame) {
+                // Check if it's my turn
+                const mySymbol = (myRole === 'host') ? 'X' : 'O';
+                if (currentPlayer !== mySymbol) {
+                    return; // Ignore clicks if it's opponent's turn
+                }
+
+                playClickSound();
+                makeMove(clickedCell, clickedCellIndex);
+
+                // Publish move to the other player
+                if (mqttClient && mqttClient.connected) {
+                    mqttClient.publish(`xo-game/room/${onlineRoomId}`, JSON.stringify({
+                        type: 'move',
+                        index: clickedCellIndex,
+                        player: currentPlayer
+                    }));
+                }
+
+                checkResult();
+                return;
+            }
+
+            // Human player plays (Local mode)
             playClickSound();
             makeMove(clickedCell, clickedCellIndex);
             
@@ -1188,17 +1351,39 @@
             if (currentPlayer === 'X') {
                 statusText.innerHTML = `${playerXName} નો વારો`;
                 statusText.className = "status";
-                board.className = "board turn-x";
+                
+                // Set board turn class only if it's my turn in online mode, or always in local mode
+                if (isOnlineGame) {
+                    if (myRole === 'host') {
+                        board.className = "board turn-x";
+                    } else {
+                        board.className = "board"; // no preview
+                    }
+                } else {
+                    board.className = "board turn-x";
+                }
+                
                 scoreXCard.classList.add('active');
                 scoreOCard.classList.remove('active');
             } else {
                 if (getActiveMode() === 'pve') {
                     statusText.innerHTML = `💻 કમ્પ્યુટર વિચારે છે...`;
+                    board.className = "board turn-o";
                 } else {
                     statusText.innerHTML = `${playerOName} નો વારો`;
+                    
+                    // Set board turn class only if it's my turn in online mode, or always in local mode
+                    if (isOnlineGame) {
+                        if (myRole === 'guest') {
+                            board.className = "board turn-o";
+                        } else {
+                            board.className = "board"; // no preview
+                        }
+                    } else {
+                        board.className = "board turn-o";
+                    }
                 }
                 statusText.className = "status turn-o";
-                board.className = "board turn-o";
                 scoreOCard.classList.add('active');
                 scoreXCard.classList.remove('active');
             }
@@ -1215,16 +1400,16 @@
             scoreOElement.innerText = scores.O;
             
             // Set name labels dynamically on scoreboard cards
-            if (getActiveMode() === 'pvp') {
-                document.querySelector('#scoreXCard .player-name').innerText = playerXName;
-                document.querySelector('#scoreOCard .player-name').innerText = playerOName;
-            } else {
+            if (getActiveMode() === 'pve') {
                 document.querySelector('#scoreXCard .player-name').innerText = playerXName;
                 document.querySelector('#scoreOCard .player-name').innerText = "કમ્પ્યુટર";
+            } else {
+                document.querySelector('#scoreXCard .player-name').innerText = playerXName;
+                document.querySelector('#scoreOCard .player-name').innerText = playerOName;
             }
         }
 
-        function resetGame(silent = false) {
+        function resetGame(silent = false, fromNetwork = false) {
             if (!silent) playResetSound();
             currentPlayer = 'X';
             gameState = ["", "", "", "", "", "", "", "", ""];
@@ -1242,18 +1427,142 @@
             });
             
             updateStatusUI();
+
+            if (isOnlineGame && !fromNetwork && mqttClient && mqttClient.connected) {
+                mqttClient.publish(`xo-game/room/${onlineRoomId}`, JSON.stringify({ type: 'reset' }));
+            }
         }
 
-        function resetScores() {
+        function resetScores(fromNetwork = false) {
             playResetSound();
             scores = { X: 0, O: 0, Draw: 0 };
             saveSettings();
             updateScoreboardUI();
-            resetGame(true);
+            resetGame(true, fromNetwork);
+
+            if (isOnlineGame && !fromNetwork && mqttClient && mqttClient.connected) {
+                mqttClient.publish(`xo-game/room/${onlineRoomId}`, JSON.stringify({ type: 'resetScores' }));
+            }
+        }
+
+        function initOnlineRoom(roomId) {
+            isOnlineGame = true;
+            onlineRoomId = roomId;
+            onlineStatusPanel.style.display = 'flex';
+            roomCodeDisplay.innerText = roomId;
+            
+            const inviteLink = window.location.origin + window.location.pathname + '?room=' + roomId;
+            shareLinkInput.value = inviteLink;
+            
+            // Update badge status
+            onlineStatusBadge.innerText = "જોડાઈ રહ્યા છીએ...";
+            onlineStatusBadge.style.backgroundColor = "var(--color-draw)";
+            
+            // Cleanup existing connection
+            if (mqttClient) {
+                try { mqttClient.end(); } catch(e) {}
+            }
+            
+            // Connect to public EMQX broker
+            mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
+            
+            mqttClient.on('connect', () => {
+                mqttClient.subscribe(`xo-game/room/${roomId}`, (err) => {
+                    if (!err) {
+                        if (myRole === 'host') {
+                            onlineStatusBadge.innerText = "રાહ જોઈ રહ્યા છીએ...";
+                            onlineStatusBadge.style.backgroundColor = "var(--color-x)";
+                            shareLinkGroup.style.display = 'flex';
+                        } else {
+                            onlineStatusBadge.innerText = "જોડાઈ ગયા!";
+                            onlineStatusBadge.style.backgroundColor = "var(--color-o)";
+                            shareLinkGroup.style.display = 'none';
+                            
+                            // Guest publishes join handshake message
+                            mqttClient.publish(`xo-game/room/${roomId}`, JSON.stringify({
+                                type: 'join',
+                                name: playerOName
+                            }));
+                        }
+                    } else {
+                        onlineStatusBadge.innerText = "કનેક્શન ફેઈલ";
+                        onlineStatusBadge.style.backgroundColor = "#ff3344";
+                    }
+                });
+            });
+            
+            mqttClient.on('message', (topic, message) => {
+                try {
+                    const data = JSON.parse(message.toString());
+                    
+                    if (data.type === 'join' && myRole === 'host') {
+                        // Host receives guest name
+                        playerOName = data.name;
+                        updateScoreboardUI();
+                        
+                        onlineStatusBadge.innerText = "રમત શરૂ!";
+                        onlineStatusBadge.style.backgroundColor = "#22c55e";
+                        shareLinkGroup.style.display = 'none';
+                        
+                        // Host replies with host name
+                        mqttClient.publish(`xo-game/room/${roomId}`, JSON.stringify({
+                            type: 'welcome',
+                            name: playerXName
+                        }));
+                        
+                        resetGame(true, true);
+                    } 
+                    else if (data.type === 'welcome' && myRole === 'guest') {
+                        // Guest receives host name
+                        playerXName = data.name;
+                        updateScoreboardUI();
+                        
+                        onlineStatusBadge.innerText = "રમત શરૂ!";
+                        onlineStatusBadge.style.backgroundColor = "#22c55e";
+                        
+                        resetGame(true, true);
+                    } 
+                    else if (data.type === 'move') {
+                        // Check if it's the move from the opponent
+                        if (gameState[data.index] === "") {
+                            playClickSound();
+                            const cell = cells[data.index];
+                            gameState[data.index] = data.player;
+                            cell.innerText = data.player;
+                            cell.classList.add(data.player);
+                            checkResult();
+                        }
+                    } 
+                    else if (data.type === 'reset') {
+                        resetGame(true, true);
+                    } 
+                    else if (data.type === 'resetScores') {
+                        resetScores(true);
+                    }
+                } catch(e) {
+                    console.error("MQTT parsing error:", e);
+                }
+            });
         }
 
         function handleModeChange(silent = false) {
             if (!silent) playResetSound();
+            
+            // Clean up online states if we switch away from online mode
+            if (getActiveMode() !== 'online') {
+                isOnlineGame = false;
+                onlineStatusPanel.style.display = 'none';
+                if (mqttClient) {
+                    try { mqttClient.end(); } catch(e) {}
+                    mqttClient = null;
+                }
+                // Clean URL room param
+                if (window.location.search.includes('room=')) {
+                    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                    window.history.pushState({path:newUrl}, '', newUrl);
+                }
+            }
+
             if (getActiveMode() === 'pve') {
                 difficultyGroup.style.display = 'flex';
                 labelO.innerText = "કમ્પ્યુટર";
@@ -1265,7 +1574,8 @@
                 document.querySelector('#scoreXCard .player-name').innerText = playerXName;
                 
                 resetGame(true);
-            } else {
+            } 
+            else if (getActiveMode() === 'pvp') {
                 difficultyGroup.style.display = 'none';
                 
                 if (!silent) {
@@ -1292,6 +1602,34 @@
                     labelO.innerText = playerOName;
                     
                     resetGame(true);
+                }
+            } 
+            else if (getActiveMode() === 'online') {
+                difficultyGroup.style.display = 'none';
+                
+                // Check if there is already a room parameter in the URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const roomId = urlParams.get('room');
+                
+                if (roomId) {
+                    // Guest joining!
+                    myRole = 'guest';
+                    onlineModalTitle.innerText = "ઓનલાઇન રૂમમાં જોડાઓ";
+                    onlineNameLabel.innerText = "તમારું નામ (Guest):";
+                    onlineNameInput.value = "";
+                    onlineNameModal.classList.add('show');
+                    onlineNameInput.focus();
+                } else {
+                    // Host creating!
+                    myRole = 'host';
+                    onlineModalTitle.innerText = "નવી ઓનલાઇન રમત";
+                    onlineNameLabel.innerText = "તમારું નામ (Host):";
+                    
+                    const savedNameX = localStorage.getItem('xoGame_playerXName');
+                    onlineNameInput.value = (savedNameX && savedNameX !== "ખેલાડી X") ? savedNameX : "";
+                    
+                    onlineNameModal.classList.add('show');
+                    onlineNameInput.focus();
                 }
             }
         }
@@ -1340,9 +1678,80 @@
             resetGame(true);
         });
 
+        // Online name modal submit
+        saveOnlineNameBtn.addEventListener('click', () => {
+            const val = onlineNameInput.value.trim();
+            
+            if (myRole === 'host') {
+                playerXName = val !== "" ? val : "ખેલાડી X";
+                localStorage.setItem('xoGame_playerXName', playerXName);
+                
+                // Generate room code and start room session
+                const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+                const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?room=' + roomCode;
+                window.history.pushState({path:newUrl}, '', newUrl);
+                
+                updateScoreboardUI();
+                initOnlineRoom(roomCode);
+            } else {
+                playerOName = val !== "" ? val : "ખેલાડી O";
+                
+                const urlParams = new URLSearchParams(window.location.search);
+                const roomCode = urlParams.get('room');
+                
+                updateScoreboardUI();
+                initOnlineRoom(roomCode);
+            }
+            
+            onlineNameModal.classList.remove('show');
+            playResetSound();
+            resetGame(true, true);
+        });
+
+        // Copy link action button
+        copyLinkBtn.addEventListener('click', () => {
+            shareLinkInput.select();
+            shareLinkInput.setSelectionRange(0, 99999); // for mobile devices
+            
+            try {
+                navigator.clipboard.writeText(shareLinkInput.value);
+                const originalText = copyLinkBtn.innerText;
+                copyLinkBtn.innerText = "કોપી થઈ!";
+                copyLinkBtn.style.background = "#22c55e"; // green success feedback
+                
+                playTone(650, 'sine', 0.08, 0.1);
+                
+                setTimeout(() => {
+                    copyLinkBtn.innerText = originalText;
+                    copyLinkBtn.style.background = ""; // revert
+                }, 2000);
+            } catch(err) {
+                console.error("Failed to copy link:", err);
+            }
+        });
+
         soundToggle.addEventListener('click', toggleMute);
 
+        // Theme Switcher Toggle Click
+        themeToggle.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            saveSettings();
+            updateThemeUI();
+            playResetSound();
+        });
+
         // Initialize application state
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlRoomId = urlParams.get('room');
+        if (urlRoomId) {
+            // Activate online mode in toggle list
+            const onlineBtn = document.querySelector('#modeSelector .toggle-btn[data-mode="online"]');
+            if (onlineBtn) {
+                modeButtons.forEach(b => b.classList.remove('active'));
+                onlineBtn.classList.add('active');
+            }
+        }
+
         loadSettings();
         handleModeChange(true); // set initial mode UI visibility silently
     </script>
